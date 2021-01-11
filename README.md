@@ -65,7 +65,6 @@ Response of the call contains the bundle of resources that matches the profile.
 - Support for XML formatted data
   - auto detect input based on the content type
   - 
-- Support of multiple profiles in the same bundle
-- Implement a way to dynamically 
-- Add support for additional resource types
 - Add support for reading questionnaires from a FHIR server
+- Support of multiple profiles in the same bundle
+- Add support for additional resource types
