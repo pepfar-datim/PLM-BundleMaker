@@ -1,0 +1,5 @@
+org/datim/plm/bundleMaker/Resources.class
+org/datim/plm/bundleMaker/QuestionnaireResponseParser.class
+org/datim/plm/bundleMaker/BundleMaker.class
+org/datim/plm/bundleMaker/BundleMakerRestController.class
+org/datim/plm/bundleMaker/ResultBundle.class
