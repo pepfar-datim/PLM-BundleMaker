@@ -10,8 +10,9 @@ FHIR bundle maker component of the patient level monitoring (PLM)
 
 ## Overview
 
-BundleMaker app is a middleware data transformation component, written in Java as a RESTful web application, using [Spring Boot](https://spring.io/projects/spring-boot) framework. It accepts and converts a single Fast Healthcare Interoperability Resources (FHIR) Bundle of QuestionnaireResponse (QR) resources or a single QR resource into a Bundle of resources as identified by [questionnaire-definitions](https://www.hl7.org/fhir/questionnaire-definitions.html#Questionnaire.item.definition) of [questionnaire](https://www.hl7.org/fhir/questionnaire.html) items in the supllied QuestionnaireResponse.
+BundleMaker app is a middleware data transformation component, written in Java as a RESTful web application, using [Spring Boot](https://spring.io/projects/spring-boot) framework. It implements definition based extraction of resources from questionnaire responses into referenced FHIR resources. It accepts and converts a single Fast Healthcare Interoperability Resources (FHIR) Bundle of QuestionnaireResponse (QR) resources or a single QR resource into a transaction type bundle of resources as identified by [questionnaire-definitions](https://www.hl7.org/fhir/questionnaire-definitions.html#Questionnaire.item.definition) of [questionnaire](https://www.hl7.org/fhir/questionnaire.html) items in the supllied QuestionnaireResponse.
 
+Currently, only creation of new resources is supported. Pre-population and updating using context resources is not supported.
 
 The BundleMaker relies on [HAPI FHIR](https://hapifhir.io/) library for both parsing and generating FHIR resources. 
 
@@ -19,14 +20,14 @@ The BundleMaker relies on [HAPI FHIR](https://hapifhir.io/) library for both par
 
 - Only json content is consumed and genarated; xml support can be easily added, by implementing XML parser use;
 - It is limited to STU4 of FHIR, and is not backwards compatible with STU3 and earlier.
-- It is currently limited to a small set of base and clinical resource types:
+- While all FHIR resource types are selected, focus is only on a select demographic and clinical resources, and others have not been verified. Supported resource types are:
   - [Patient](https://www.hl7.org/fhir/patient.html)
   - [Encounter](https://www.hl7.org/fhir/encounter.html)
   - [Condition](https://www.hl7.org/fhir/condition.html)
   - [Observation](https://www.hl7.org/fhir/observation.html)
   - [MedicationStatement](https://www.hl7.org/fhir/medicationStatement.html)
 - Generated resources are not persisted, and are only returned as a response
-- While it can process it, the app is not intended to be used with a mix of QuestionnaireResponses responding to different Questionnaires in one bundle.
+
 
 ## Use
 
@@ -36,27 +37,29 @@ Maven is used as the software project mananagement tool.
 
 ### Building
 
-Use `mvn package` to build the executable jar file. Maven will build executable jar with dependencies and place them in the target directory.
-
-`application.properties` file in the root of the project defines the port number to use for the web app. Default value is 9000
+Use `mvn clean package` to build the executable jar file. Maven will build executable jar with dependencies and place them in the target directory.
 
 ### Running
 
-Current version of the BundleMaker is a standalone restulf web application that expects a single configuration at the runtime - location of the folder where questionnaires are located:
+Current version of the BundleMaker is a standalone restful web application that expects a single configuration at the runtime - path to the FHIR server where it can locate Questionnaire resources to use during extraction. By default, application will run on port 8080. Alternative port can be specified using `server.port` option.
 
-`java -jar bundleMaker-0.0.1.jar --questionnaire.path=PATH_TO_QUESTIONNAIRES` --server.port=9000
+`java -jar bundleMaker-0.0.1.jar --fhireserverpath=PATH_TO_QUESTIONNAIRES` --server.port=9000
 
 
 ### API
 
-Current version of the application exposes a general API endpoint `http://localhost:9000/extract` for accepting POST requests, and expects the body of the request to be a `application/json` type, containing a single QR or a bundle QRs. Generated bundle will be assigned `Unknown` as the profile URI, as there is currently no way to identify bundle profile from the questionnaire or the questionnaire response.
+Application implements QuestionnaireResponseExtract operation (http://hl7.org/fhir/uv/sdc/OperationDefinition/QuestionnaireResponse-extract
+).
 
-To address the above limitation, for the proof of concept, to address lack of resource bundle profile identifier in the questionnaire, specific endpoints are defined for TX_PVLS and FP_CONTR_NEW resource bundles, and assign profile URI to generated bundle.
+It supports POST requests to either 'type' or 'object' endpoints.
 
-- `/extract/TX_PVLS`: generates resource bundle for TX_PVLS indicator as defined in [TX_PVLS structure definition](https://github.com/pepfar-datim/PLM/blob/master/TX_PVLS%20FHIR%20Profile/TX_PVLS_Bundle.StructureDefinition.xml)
-- `/extract/FP_CONTR_NE`
+`http://localhost:9000/Questionnaire/$extract` or `http://localhost:9000/Questionnaire/{id}/$extract`
 
-Response of the call contains the bundle of resources that matches the profile.
+If using object level endpoint, qustionnaire ID as it appears in the referenced FHIR server should be used, and it will be verified against the submitted QuestionnaireResponse.
+
+Currently only `application/json` type input is supported and is expected as the body of the request. Input can contain either a singular resource or a bundle of QuestionnaireResponse resources.
+
+Output is a transaction type bundle containing all the generated resources.
 
 ## TODO
 
@@ -64,7 +67,9 @@ Response of the call contains the bundle of resources that matches the profile.
   - validate input QuestionnaireReponse to ensure that the content corresponds to the Questionnaire
 - Support for XML formatted data
   - auto detect input based on the content type
-  - 
-- Add support for reading questionnaires from a FHIR server
-- Support of multiple profiles in the same bundle
-- Add support for additional resource types
+
+- add checking for extractable questionnaire being used: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-extract
+- add support for item context http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext
+- add support for creating context resources, and support pre-populating and updating resources
+- add support for queries and expressions
+- harden error checking and handling
