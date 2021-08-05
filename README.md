@@ -43,7 +43,7 @@ Use `mvn clean package` to build the executable jar file. Maven will build execu
 
 Current version of the BundleMaker is a standalone restful web application that expects a single configuration at the runtime - path to the FHIR server where it can locate Questionnaire resources to use during extraction. By default, application will run on port 8080. Alternative port can be specified using `server.port` option.
 
-`java -jar bundleMaker-0.0.1.jar --fhireserverpath=PATH_TO_FHIR_SERVER` --server.port=9000
+`java -jar bundleMaker-0.0.1.jar --fhirserverpath=PATH_TO_FHIR_SERVER` --server.port=9000
 
 
 ### API
