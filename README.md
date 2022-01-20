@@ -73,3 +73,5 @@ Output is a transaction type bundle containing all the generated resources.
 - add support for creating context resources, and support pre-populating and updating resources
 - add support for queries and expressions
 - harden error checking and handling
+
+http://build.fhir.org/ig/HL7/sdc/extraction.html
