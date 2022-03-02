@@ -1,0 +1,11 @@
+version: '3'
+services:
+  bundlemakerapp:
+    build: .
+    hostname: bundlemaker
+    container_name: bundlemaker
+    restart: on-failure
+    ports:
+      - "9000:9000"
+    environment:
+      fhirserverpath: "http://localhostd:8080/fhir"

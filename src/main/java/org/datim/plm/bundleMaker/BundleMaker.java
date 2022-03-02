@@ -25,8 +25,13 @@ public class BundleMaker {
   public static String extractBundle(String requestBody, String id, String fhirserverpath) throws IOException {
     FhirContext ctx = FhirContext.forR4();
     IParser parser = ctx.newJsonParser();
+    //BundleMaker Validations
+    BundleMakerValidator bundleMakerValidator = new BundleMakerValidator();
+    bundleMakerValidator.jsonObjectValidator(requestBody);
+    bundleMakerValidator.isFHIRServerValid(ctx,fhirserverpath);
 
     QuestionnaireLookup questionnaireLookup = new QuestionnaireLookup(ctx, fhirserverpath);
+
 
     ArrayList<QuestionnaireResponse> questionnaireResponses = QuestionnaireResponseParser
         .parseQuestionnaireResponses(parser, requestBody);

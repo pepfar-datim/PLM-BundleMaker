@@ -2,21 +2,53 @@ package org.datim.plm.bundleMaker;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.util.BundleUtil;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Questionnaire;
 
-import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
-public class BundleValidator {
-    private String server;
+public class BundleMakerValidator {
 
-    public BundleValidator(FhirContext context, String serverBase) {
-        this.server = serverBase;
-        IGenericClient client = context.newRestfulGenericClient(serverBase);
+    public BundleMakerValidator() {
+    }
+    //Valid the URL Provided
+    public void urlValidator(String serverUrl){
+        UrlValidator fhirUrlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
+        if(!fhirUrlValidator.isValid(serverUrl)){
+            throw new IllegalArgumentException("Invalid URL provided:"+serverUrl);
+        }
     }
 
-    public boolean urlValidator(String serverUrl){
-        UrlValidator fhirUrlValidator = new UrlValidator();
-        return fhirUrlValidator.isValid(serverUrl);
+    // Validate if the data is a JSON object.
+    public boolean jsonObjectValidator(String jsonData){
+        try{
+            JsonObject jsonObject = JsonParser.parseString(jsonData).getAsJsonObject();
+            return true;
+        }
+        catch(JsonSyntaxException jsonSyntaxException){
+            throw new IllegalArgumentException("Not a valid JSON string provided " + jsonSyntaxException.getMessage());
+        }
+    }
+    //Valid if the server URL provided is a FHIR server
+    public void isFHIRServerValid(FhirContext ctx, String serverUrl) {
+        urlValidator(serverUrl);
+        try {
+            IGenericClient client = ctx.newRestfulGenericClient(serverUrl);
+            List<IBaseResource> qs = new ArrayList<>();
+            Bundle bundle = client.search().forResource(Questionnaire.class).returnBundle(Bundle.class).execute();
+            qs.addAll(BundleUtil.toListOfResources(ctx, bundle));
+        }
+        catch (Exception exception){
+            throw new IllegalArgumentException("Not a valid FHIR Server provided:" + exception.getMessage());
+        }
+
     }
 
 }

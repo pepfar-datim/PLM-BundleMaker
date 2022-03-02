@@ -16,28 +16,29 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableAutoConfiguration
 public class BundleMakerRestController {
 
-  @Value("${fhirserverpath:NULL}")
-  private String fhirserverpath;
+    @Value("${fhirserverpath:NULL}")
+    private String fhirserverpath;
 
-  @RequestMapping(value="/Questionnaire/$extract", method=RequestMethod.POST)
-  @ResponseBody
-  String _extract(@RequestBody String requestBody) throws IOException {
-    return BundleMaker.extractBundle(requestBody, null, fhirserverpath);
-  }
-  @RequestMapping(value="/Questionnaire/{id}/$extract", method=RequestMethod.POST)
-  @ResponseBody
-  String _extract(@RequestBody String requestBody, @PathVariable String id) throws IOException {
-    return BundleMaker.extractBundle(requestBody, id, fhirserverpath);
-  }
+    @RequestMapping(value = "/Questionnaire/$extract", method = RequestMethod.POST, consumes = {"application/json"})
+    @ResponseBody
+    String _extract(@RequestBody String requestBody) throws IOException {
+        return BundleMaker.extractBundle(requestBody, null, fhirserverpath);
+    }
 
-  @RequestMapping(value="/extract", method=RequestMethod.POST)
-  @ResponseBody
-  String extract(@RequestBody String requestBody) throws IOException {
-    return BundleMaker.extractBundle(requestBody, null, fhirserverpath);
-  }
+    @RequestMapping(value = "/Questionnaire/{id}/$extract", method = RequestMethod.POST, consumes = {"application/json"})
+    @ResponseBody
+    String _extract(@RequestBody String requestBody, @PathVariable String id) throws IOException {
+        return BundleMaker.extractBundle(requestBody, id, fhirserverpath);
+    }
 
-  public static void main(String[] args) {
-    SpringApplication.run(BundleMakerRestController.class, args);
-  }
+    @RequestMapping(value = "/extract", method = RequestMethod.POST, consumes = {"application/json"})
+    @ResponseBody
+    String extract(@RequestBody String requestBody) throws IOException {
+        return BundleMaker.extractBundle(requestBody, null, fhirserverpath);
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(BundleMakerRestController.class, args);
+    }
 
 }
