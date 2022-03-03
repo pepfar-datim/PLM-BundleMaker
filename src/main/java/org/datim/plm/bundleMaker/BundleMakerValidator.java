@@ -18,7 +18,7 @@ public class BundleMakerValidator {
 
     public BundleMakerValidator() {
     }
-    //Valid the URL Provided
+    //Validate the URL Provided
     public void urlValidator(String serverUrl){
         UrlValidator fhirUrlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
         if(!fhirUrlValidator.isValid(serverUrl)){
@@ -36,7 +36,7 @@ public class BundleMakerValidator {
             throw new IllegalArgumentException("Not a valid JSON string provided " + jsonSyntaxException.getMessage());
         }
     }
-    //Valid if the server URL provided is a FHIR server
+    //Validate if the server URL provided is a FHIR server
     public void isFHIRServerValid(FhirContext ctx, String serverUrl) {
         urlValidator(serverUrl);
         try {
