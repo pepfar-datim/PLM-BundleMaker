@@ -27,10 +27,9 @@ public class BundleMakerValidator {
     }
 
     // Validate if the data is a JSON object.
-    public boolean jsonObjectValidator(String jsonData){
+    public void jsonObjectValidator(String jsonData){
         try{
             JsonObject jsonObject = JsonParser.parseString(jsonData).getAsJsonObject();
-            return true;
         }
         catch(JsonSyntaxException jsonSyntaxException){
             throw new IllegalArgumentException("Not a valid JSON string provided " + jsonSyntaxException.getMessage());
