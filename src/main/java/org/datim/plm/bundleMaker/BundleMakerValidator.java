@@ -10,6 +10,7 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Questionnaire;
+import org.hl7.fhir.r4.model.QuestionnaireResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,73 @@ public class BundleMakerValidator {
         }
         catch (Exception exception){
             throw new IllegalArgumentException("Not a valid FHIR Server provided:" + exception.getMessage());
+        }
+    }
+
+    public void isQuestionnaireResponsesValid(ArrayList<QuestionnaireResponse> questionnaireResponses){
+
+        for (QuestionnaireResponse qr : questionnaireResponses) {
+            for(QuestionnaireResponse.QuestionnaireResponseItemComponent qrItemComponent: qr.getItem()){
+                if(!qrItemComponent.hasLinkId()){
+                    throw new IllegalArgumentException("Not a valid QuestionnaireResponse - Missing Some LinkId ");
+                }
+                checkQuestionnaireResponseItemHasLinkId(qrItemComponent);
+            }
+        }
+    }
+
+    private void checkQuestionnaireResponseItemHasLinkId(QuestionnaireResponse.QuestionnaireResponseItemComponent itemComponent) {
+
+        if(itemComponent.hasItem()) {
+            for(QuestionnaireResponse.QuestionnaireResponseItemComponent qRItemComponent : itemComponent.getItem()) {
+                if(qRItemComponent.hasItem()){
+                    if(!qRItemComponent.hasLinkId()){
+                        throw new IllegalArgumentException("Not a valid QuestionnaireResponse - Missing Some LinkId ");
+                    }
+                    checkQuestionnaireResponseItemHasLinkId(qRItemComponent);
+                }else {
+                    if(!qRItemComponent.hasLinkId()){
+                        throw new IllegalArgumentException("Not a valid QuestionnaireResponse - Missing Some LinkId");
+                    }
+                }
+            }
+        }
+        else {
+            if(!itemComponent.hasLinkId()){
+                throw new IllegalArgumentException("Not a valid QuestionnaireResponse - Missing Some LinkId ");
+            }
+        }
+    }
+
+    public void isQuestionnaireValid(Questionnaire questionnaire) {
+        if(questionnaire.hasItem()) {
+            for(Questionnaire.QuestionnaireItemComponent questionnaireItemComponent : questionnaire.getItem()) {
+                if(!questionnaireItemComponent.hasLinkId() || !questionnaireItemComponent.hasDefinition()){
+                    throw new IllegalArgumentException("Not a valid Questionnaire - Missing Some LinkId and Definition");
+                }
+                checkQuestionnaireItemValidity(questionnaireItemComponent);
+            }
+        }
+    }
+
+    private void checkQuestionnaireItemValidity(Questionnaire.QuestionnaireItemComponent itemComponent) {
+        if(itemComponent.hasItem()) {
+            for(Questionnaire.QuestionnaireItemComponent questionnaireItemComponent : itemComponent.getItem()) {
+                    if(questionnaireItemComponent.hasItem()){
+                        if(!questionnaireItemComponent.hasLinkId() || !questionnaireItemComponent.hasDefinition()){
+                            throw new IllegalArgumentException("Not a valid Questionnaire - Missing Some LinkId and Definition");
+                        }
+                        checkQuestionnaireItemValidity(questionnaireItemComponent);
+                    }else {
+                        if(!questionnaireItemComponent.hasLinkId() || !questionnaireItemComponent.hasDefinition()){
+                            throw new IllegalArgumentException("Not a valid Questionnaire - Missing Some LinkId and Definition");
+                        }
+                    }
+            }
+        }else {
+            if(!itemComponent.hasLinkId() || !itemComponent.hasDefinition()){
+                throw new IllegalArgumentException("Not a valid Questionnaire - Missing Some LinkId and Definition");
+            }
         }
 
     }

@@ -166,10 +166,12 @@ public class QuestionnaireResponseParser {
       }
       return null;
     }
-    if(itemComponent.getLinkId().equals(linkId))
+    if(itemComponent.getLinkId().equals(linkId)){
       return itemComponent;
-    else
+    }
+    else {
       return null;
+    }
   }
 
   private static Type getValue(QuestionnaireResponseItemComponent r2) {
