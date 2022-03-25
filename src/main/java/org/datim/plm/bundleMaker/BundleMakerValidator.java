@@ -3,6 +3,8 @@ package org.datim.plm.bundleMaker;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.util.BundleUtil;
+import ca.uhn.fhir.validation.FhirValidator;
+import ca.uhn.fhir.validation.ValidationResult;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -117,5 +119,17 @@ public class BundleMakerValidator {
         }
 
     }
+
+    public void fhirValidator(FhirContext ctx, IBaseResource resource ){
+        //FHIR Validator
+        FhirValidator validator = ctx.newValidator();
+
+        //IValidatorModule validatorModule = new FhirInstanceValidator(ctx);
+        //validator.registerValidatorModule(validatorModule);
+
+        ValidationResult validationResult = validator.validateWithResult(resource);
+        System.out.println(validationResult.isSuccessful());
+    }
+
 
 }

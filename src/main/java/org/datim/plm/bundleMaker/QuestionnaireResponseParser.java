@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import ca.uhn.fhir.parser.StrictErrorHandler;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.Base;
 import org.hl7.fhir.r4.model.BooleanType;
@@ -221,6 +222,8 @@ public class QuestionnaireResponseParser {
 
     ArrayList<QuestionnaireResponse> questionnaireResponses = new ArrayList<QuestionnaireResponse>();
     JsonNode n = new ObjectMapper().readTree(content);
+    //Enable strict parser validation
+    parser.setParserErrorHandler(new StrictErrorHandler());
     try {
       Bundle b = parser.parseResource(Bundle.class, n.toString());
       for (BundleEntryComponent bec : b.getEntry()) {
@@ -245,7 +248,6 @@ public class QuestionnaireResponseParser {
         }
         // TODO need to raise as an error, as it is unexpected to see a single
         // resource that is not QR
-        throw new RuntimeException("Resource type is invalid. Either QuestionnaireResponse or Bundle is expected.");
       } catch (DataFormatException dfe2) {
         throw new RuntimeException("Resource type is invalid. Either QuestionnaireResponse or Bundle is expected.");
       }

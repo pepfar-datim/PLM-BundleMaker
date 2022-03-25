@@ -2,6 +2,7 @@ package org.datim.plm.bundleMaker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
@@ -33,7 +34,6 @@ public class BundleMaker {
     bundleMakerValidator.isFHIRServerValid(ctx,fhirserverpath);
 
     QuestionnaireLookup questionnaireLookup = new QuestionnaireLookup(ctx, fhirserverpath);
-
 
     ArrayList<QuestionnaireResponse> questionnaireResponses = QuestionnaireResponseParser
         .parseQuestionnaireResponses(parser, requestBody);
