@@ -40,11 +40,20 @@ Maven is used as the software project mananagement tool.
 Use `mvn clean package` to build the executable jar file. Maven will build executable jar with dependencies and place them in the target directory.
 
 ### Running
-
+#### Using Jar
 Current version of the BundleMaker is a standalone restful web application that expects a single configuration at the runtime - path to the FHIR server where it can locate Questionnaire resources to use during extraction. By default, application will run on port 8080. Alternative port can be specified using `server.port` option.
 
 `java -jar bundleMaker-0.0.1.jar --fhirserverpath=PATH_TO_FHIR_SERVER` --server.port=9000
 
+#### Using Docker Compose
+Prerequisites are Docker and Docker Compose.
+Build the bundleMaker docker image 
+
+`./build-docker-image.sh `
+
+Configure the environment variable *fhirserverpath* with the FHIR Server URL on `docker-compose.yml`. 
+
+To start the bundleMaker application, `docker-compose up`
 
 ### API
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import ca.uhn.fhir.parser.StrictErrorHandler;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.Base;
 import org.hl7.fhir.r4.model.BooleanType;
@@ -50,8 +51,8 @@ public class QuestionnaireResponseParser {
     // include code from questionnaire
     ArrayList<Resource> resources = new ArrayList<Resource>();
     
-    for(QuestionnaireResponseItemComponent i : questionnaireResponse.getItem()) {
-      parseItem(i, resources);
+    for(QuestionnaireResponseItemComponent questionnaireResponseItemComponent : questionnaireResponse.getItem()) {
+      parseItem(questionnaireResponseItemComponent, resources);
     }
 
     // if id not found, add a UUID
@@ -95,17 +96,26 @@ public class QuestionnaireResponseParser {
     
     if(item.hasAnswer()) {
       QuestionnaireItemComponent questionnaireItem = findQuestionnaireItem(baseQuestionnaire, item.getLinkId());
-      
-      //TODO add checking for missing definitions
+
+      //Checking a null questionnaireItem
+      if(questionnaireItem == null){
+        throw new IllegalArgumentException("Questionnaire: "+baseQuestionnaire.getUrl()+" Item doesn't have linkedId: "+item.getLinkId());
+      }
+
+      //Checking for missing definition
       String definition = questionnaireItem.getDefinition();
-      
+      if(definition == null) {
+        throw new IllegalArgumentException("Questionnaire: " + baseQuestionnaire.getUrl() + " Item doesn't have definition: " + item.getLinkId());
+      }
+
       String[] fragment = definition.substring(definition.lastIndexOf("#")+1).split("\\.");
       
       String resourceType = fragment[0];
       Resource resource = getResource(resources, resourceType);
       
-      if(fragment.length < 2)
+      if(fragment.length < 2){
         throw new IllegalArgumentException("Questionnaire item does not have proper definition");
+      }
 
       Base base = resource;
       for(int i = 1; i < fragment.length; i++) {
@@ -130,35 +140,39 @@ public class QuestionnaireResponseParser {
         resource.setProperty("code", cc);
       }
     }
-    for(QuestionnaireResponseItemComponent i : item.getItem()) {
-      parseItem(i, resources);
+    for(QuestionnaireResponseItemComponent questionnaireResponseItemComponent : item.getItem()) {
+      parseItem(questionnaireResponseItemComponent, resources);
     }
   }
 
-  private QuestionnaireItemComponent findQuestionnaireItem(Questionnaire q, String linkid) {
-    if(q.hasItem()) {
-      for(QuestionnaireItemComponent i : q.getItem()) {
-        QuestionnaireItemComponent r = findQuestionnaireItem(i, linkid);
-        if(r != null)
-          return r;
+  private QuestionnaireItemComponent findQuestionnaireItem(Questionnaire questionnaire, String linkId) {
+    if(questionnaire.hasItem()) {
+      for(QuestionnaireItemComponent questionnaireItemComponent : questionnaire.getItem()) {
+        QuestionnaireItemComponent returnedItemComponent = findQuestionnaireItem(questionnaireItemComponent, linkId);
+        if(returnedItemComponent != null){
+          return returnedItemComponent;
+        }
       }
     }
     return null;
   }
   
-  private QuestionnaireItemComponent findQuestionnaireItem(QuestionnaireItemComponent item, String linkid) {
-    if(item.hasItem()) {
-      for(QuestionnaireItemComponent i : item.getItem()) {
-        QuestionnaireItemComponent r = findQuestionnaireItem(i, linkid);
-        if(r != null)
-          return r;
+  private QuestionnaireItemComponent findQuestionnaireItem(QuestionnaireItemComponent itemComponent, String linkId) {
+    if(itemComponent.hasItem()) {
+      for(QuestionnaireItemComponent questionnaireItemComponent : itemComponent.getItem()) {
+        QuestionnaireItemComponent returnedItemComponent = findQuestionnaireItem(questionnaireItemComponent, linkId);
+        if(returnedItemComponent != null){
+          return returnedItemComponent;
+        }
       }
       return null;
     }
-    if(item.getLinkId().equals(linkid))
-      return item;
-    else
+    if(itemComponent.getLinkId().equals(linkId)){
+      return itemComponent;
+    }
+    else {
       return null;
+    }
   }
 
   private static Type getValue(QuestionnaireResponseItemComponent r2) {
@@ -208,6 +222,8 @@ public class QuestionnaireResponseParser {
 
     ArrayList<QuestionnaireResponse> questionnaireResponses = new ArrayList<QuestionnaireResponse>();
     JsonNode n = new ObjectMapper().readTree(content);
+    //Enable strict parser validation
+    parser.setParserErrorHandler(new StrictErrorHandler());
     try {
       Bundle b = parser.parseResource(Bundle.class, n.toString());
       for (BundleEntryComponent bec : b.getEntry()) {
@@ -232,7 +248,6 @@ public class QuestionnaireResponseParser {
         }
         // TODO need to raise as an error, as it is unexpected to see a single
         // resource that is not QR
-        throw new RuntimeException("Resource type is invalid. Either QuestionnaireResponse or Bundle is expected.");
       } catch (DataFormatException dfe2) {
         throw new RuntimeException("Resource type is invalid. Either QuestionnaireResponse or Bundle is expected.");
       }

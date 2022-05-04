@@ -2,8 +2,11 @@ package org.datim.plm.bundleMaker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.UUID;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryRequestComponent;
@@ -25,14 +28,23 @@ public class BundleMaker {
   public static String extractBundle(String requestBody, String id, String fhirserverpath) throws IOException {
     FhirContext ctx = FhirContext.forR4();
     IParser parser = ctx.newJsonParser();
+    //BundleMaker Validations
+    BundleMakerValidator bundleMakerValidator = new BundleMakerValidator();
+    bundleMakerValidator.jsonObjectValidator(requestBody);
+    bundleMakerValidator.isFHIRServerValid(ctx,fhirserverpath);
 
     QuestionnaireLookup questionnaireLookup = new QuestionnaireLookup(ctx, fhirserverpath);
 
     ArrayList<QuestionnaireResponse> questionnaireResponses = QuestionnaireResponseParser
         .parseQuestionnaireResponses(parser, requestBody);
 
+    //Validate QuestionnaireResponses -Has a linkId
+    bundleMakerValidator.isQuestionnaireResponsesValid(questionnaireResponses);
     // TODO if zero length
     // TODO if invalid type
+    if(questionnaireResponses.size()==0){
+      throw new  HttpResponseException(HttpStatus.SC_NOT_FOUND, "QuestionResponse Bundle is empty");
+    }
 
     // Check questionnaire reference & check that it is extractable
     Questionnaire baseQuestionnaire = null;
@@ -45,7 +57,7 @@ public class BundleMaker {
         if (!qr.getQuestionnaire().equals(expectedUrl)) {
           // TODO raise an error, referenced questionnaire is unexpected
           throw new IllegalArgumentException(
-              "Questionnaire identified in the url does not match questionnaire referenced within the questionnaire response bundle.");
+              "Questionnaire identified in the url "+expectedUrl+" does not match questionnaire referenced within the questionnaire response bundle "+qr.getQuestionnaire());
         }
       }
     } else {
@@ -61,7 +73,7 @@ public class BundleMaker {
         }
         if (!firstQuestionnaireUrl.equals(qr.getQuestionnaire())) {
           throw new IllegalArgumentException(
-              "Same questionnaire reference is expected in all questionnaire response resources within the bundle.");
+              "Same questionnaire reference "+firstQuestionnaireUrl+" is expected in all questionnaire response resources within the bundle. Reference: "+qr.getQuestionnaire());
         }
 
       }
@@ -78,6 +90,9 @@ public class BundleMaker {
     // supporting pre-population and updating
 
     // TODO - currently not supporting queries/expressions
+
+    //Validate Questionnaire - Has LinkId & Definition
+    bundleMakerValidator.isQuestionnaireValid(baseQuestionnaire);
 
     QuestionnaireResponseParser questionnaireResponseParser = new QuestionnaireResponseParser(baseQuestionnaire);
 
