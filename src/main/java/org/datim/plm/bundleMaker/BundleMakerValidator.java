@@ -1,6 +1,8 @@
 package org.datim.plm.bundleMaker;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.DataFormatException;
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.util.BundleUtil;
 import ca.uhn.fhir.validation.FhirValidator;
@@ -130,6 +132,42 @@ public class BundleMakerValidator {
         ValidationResult validationResult = validator.validateWithResult(resource);
         System.out.println(validationResult.isSuccessful());
     }
+
+    // FHIR XML To JSON
+    public String convertXmlToJsonFhir(FhirContext context, String content) throws DataFormatException
+    {
+        try
+        {
+            IParser source = context.newXmlParser();
+            IBaseResource resource = source.parseResource( content );
+            IParser target   = context.newJsonParser();
+            return target.encodeResourceToString( resource );
+        }
+        catch( DataFormatException e )
+        {
+            throw new DataFormatException("FHIR XML to JSON format conversion error "+e.getMessage());
+        }
+
+    }
+
+    // FHIR JSON To  XML
+    public String convertJsonToXmlFhir(FhirContext context, String content) throws DataFormatException
+    {
+        try
+        {
+            IParser source = context.newJsonParser();
+            IBaseResource resource = source.parseResource( content );
+            IParser target   = context.newXmlParser();
+            return target.encodeResourceToString( resource );
+        }
+        catch( DataFormatException e )
+        {
+            throw new DataFormatException("FHIR JSON to XML format conversion error "+e.getMessage());
+        }
+
+    }
+
+
 
 
 }

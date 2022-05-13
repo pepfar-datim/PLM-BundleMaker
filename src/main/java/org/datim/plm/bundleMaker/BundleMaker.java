@@ -24,13 +24,23 @@ public class BundleMaker {
   QuestionnaireResponseParser qrParser;
   IParser parser;
   ResultBundle resultBundle;
-
-  public static String extractBundle(String requestBody, String id, String fhirserverpath) throws IOException {
+  private static String formatXml = "xml";
+  private static String formatJson = "json";
+  public static String extractBundle(String requestBody, String id, String fhirserverpath, String contentType, String format) throws IOException {
     FhirContext ctx = FhirContext.forR4();
     IParser parser = ctx.newJsonParser();
+
     //BundleMaker Validations
     BundleMakerValidator bundleMakerValidator = new BundleMakerValidator();
-    bundleMakerValidator.jsonObjectValidator(requestBody);
+
+    if(contentType.contains(formatXml)){
+      requestBody = bundleMakerValidator.convertXmlToJsonFhir(ctx, requestBody);
+    }
+
+    //validate JSON
+    if(contentType.contains(formatJson)){
+      bundleMakerValidator.jsonObjectValidator(requestBody);
+    }
     bundleMakerValidator.isFHIRServerValid(ctx,fhirserverpath);
 
     QuestionnaireLookup questionnaireLookup = new QuestionnaireLookup(ctx, fhirserverpath);
@@ -118,6 +128,10 @@ public class BundleMaker {
         berc.setUrl(r.getResourceType().toString() + "/" + r.getId());
       }
     });
+
+    if(format.equalsIgnoreCase(formatXml)){
+     return bundleMakerValidator.convertJsonToXmlFhir(ctx, parser.encodeResourceToString(bundle));
+    }
     return parser.encodeResourceToString(bundle);
   }
 
