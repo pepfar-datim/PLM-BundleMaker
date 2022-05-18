@@ -18,25 +18,25 @@ public class BundleMakerRestController {
     @ResponseBody
     String _extract(@RequestBody String requestBody,
                     @RequestHeader(value = "content-type", required = true) String contentType,
-                    @RequestParam(defaultValue = "json") String format) throws IOException {
+                    @RequestHeader(value = "accept", required = false) String acceptHeader) throws IOException {
 
-        return BundleMaker.extractBundle(requestBody, null, fhirserverpath, contentType, format);
+        return BundleMaker.extractBundle(requestBody, null, fhirserverpath, contentType, acceptHeader);
     }
 
     @RequestMapping(value = "/Questionnaire/{id}/$extract", method = RequestMethod.POST, consumes = {"application/json","application/fhir+json", "application/fhir+xml", "application/xml"})
     @ResponseBody
     String _extract(@RequestBody String requestBody, @PathVariable String id,
                     @RequestHeader(value = "content-type", required = true) String contentType,
-                    @RequestParam(defaultValue = "json") String format) throws IOException {
-        return BundleMaker.extractBundle(requestBody, id, fhirserverpath, contentType, format);
+                    @RequestHeader(value = "accept", required = false) String acceptHeader) throws IOException {
+        return BundleMaker.extractBundle(requestBody, id, fhirserverpath, contentType, acceptHeader);
     }
 
     @RequestMapping(value = "/extract", method = RequestMethod.POST, consumes = {"application/json","application/fhir+json", "application/fhir+xml", "application/xml"})
     @ResponseBody
     String extract(@RequestBody String requestBody,
                    @RequestHeader(value = "content-type", required = true) String contentType,
-                   @RequestParam(defaultValue = "json") String format) throws IOException {
-        return BundleMaker.extractBundle(requestBody, null, fhirserverpath, contentType, format);
+                   @RequestHeader(value = "accept", required = false) String acceptHeader) throws IOException {
+        return BundleMaker.extractBundle(requestBody, null, fhirserverpath, contentType, acceptHeader);
     }
 
     public static void main(String[] args) {
