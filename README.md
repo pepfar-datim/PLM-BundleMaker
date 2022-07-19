@@ -40,11 +40,20 @@ Maven is used as the software project mananagement tool.
 Use `mvn clean package` to build the executable jar file. Maven will build executable jar with dependencies and place them in the target directory.
 
 ### Running
-
+#### Using Jar
 Current version of the BundleMaker is a standalone restful web application that expects a single configuration at the runtime - path to the FHIR server where it can locate Questionnaire resources to use during extraction. By default, application will run on port 8080. Alternative port can be specified using `server.port` option.
 
 `java -jar bundleMaker-0.0.1.jar --fhirserverpath=PATH_TO_FHIR_SERVER` --server.port=9000
 
+#### Using Docker Compose
+Prerequisites are Docker and Docker Compose.
+Build the bundleMaker docker image 
+
+`./build-docker-image.sh `
+
+Configure the environment variable *fhirserverpath* with the FHIR Server URL on `docker-compose.yml`. 
+
+To start the bundleMaker application, `docker-compose up`
 
 ### API
 
@@ -57,21 +66,14 @@ It supports POST requests to either 'type' or 'object' endpoints.
 
 If using object level endpoint, qustionnaire ID as it appears in the referenced FHIR server should be used, and it will be verified against the submitted QuestionnaireResponse.
 
-Currently only `application/json` type input is supported and is expected as the body of the request. Input can contain either a singular resource or a bundle of QuestionnaireResponse resources.
+It supports both `application/json` and `application/xml` content type input and is expected as the body of the request. Input can contain either a singular resource or a bundle of QuestionnaireResponse resources.
 
-Output is a transaction type bundle containing all the generated resources.
+Output is a transaction type bundle containing all the generated resources. The output type by default is based on the content type, to change the default output format of the bundle use the ``Accept`` HTTP header for either `application/json` or `application/xml`.
 
 ## TODO
-
-- Proper error checking:
-  - validate input QuestionnaireReponse to ensure that the content corresponds to the Questionnaire
-- Support for XML formatted data
-  - auto detect input based on the content type
-
-- add checking for extractable questionnaire being used: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-extract
-- add support for item context http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext
-- add support for creating context resources, and support pre-populating and updating resources
-- add support for queries and expressions
-- harden error checking and handling
+- Add checking for extractable questionnaire being used: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-extract
+- Add support for item context http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemExtractionContext
+- Add support for creating context resources, and support pre-populating and updating resources
+- Add support for queries and expressions
 
 http://build.fhir.org/ig/HL7/sdc/extraction.html
